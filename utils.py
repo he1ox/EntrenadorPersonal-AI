@@ -6,6 +6,8 @@ correct = cv2.imread('right.png')
 correct = cv2.cvtColor(correct, cv2.COLOR_BGR2RGB)
 incorrect = cv2.imread('wrong.png')
 incorrect = cv2.cvtColor(incorrect, cv2.COLOR_BGR2RGB)
+counter = cv2.imread('counter.png')
+counter = cv2.cvtColor(counter, cv2.COLOR_BGR2RGB)
 
 def draw_rounded_rect(img, rect_start, rect_end, corner_width, box_color):
 
@@ -79,6 +81,8 @@ def draw_text(
             overlay_res = cv2.resize(correct, (resize_height, resize_height), interpolation = cv2.INTER_AREA)		
         elif overlay_type == "incorrect":
             overlay_res = cv2.resize(incorrect, (resize_height, resize_height), interpolation = cv2.INTER_AREA)
+        elif overlay_type == "counter":
+            overlay_res = cv2.resize(counter, (resize_height, resize_height), interpolation = cv2.INTER_AREA)
 
         img[rec_start[1]:rec_start[1]+resize_height, rec_start[0]+width:rec_start[0]+width+resize_height] = overlay_res
 

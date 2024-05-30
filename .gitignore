@@ -140,6 +140,8 @@ venv.bak/
 # mkdocs documentation
 /site
 
+output_recorded.mp4
+
 # mypy
 .mypy_cache/
 .dmypy.json
