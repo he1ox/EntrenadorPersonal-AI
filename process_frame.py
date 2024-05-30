@@ -7,22 +7,22 @@ from utils import find_angle, get_landmark_features, draw_text, draw_dotted_line
 class ProcessFrame:
     def __init__(self, thresholds, flip_frame=False):
 
-        # Set if frame should be flipped or not.
+        # Configuramos si la orientación de la cama se invierte
         self.flip_frame = flip_frame
 
-        # self.thresholds
+        # Umbrales
         self.thresholds = thresholds
 
-        # Font type.
+        # TIPO DE FUENTE
         self.font = cv2.FONT_HERSHEY_SIMPLEX
 
-        # line type
+        # Tipo de linea
         self.linetype = cv2.LINE_AA
 
-        # set radius to draw arc
+        # Establecer radio para dibujar el arco
         self.radius = 20
 
-        # Colors in RGB format.
+        # Los colores se encuentran en un formato RGB
         self.COLORS = {
             'blue': (0, 127, 255),
             'red': (255, 50, 50),
@@ -35,7 +35,7 @@ class ProcessFrame:
             'light_blue': (102, 204, 255)
         }
 
-        # Dictionary to maintain the various landmark features.
+        # Diccionario para mantener las diversas características de los puntos de referencia.
         self.dict_features = {}
         self.left_features = {
             'shoulder': 11,
@@ -61,7 +61,7 @@ class ProcessFrame:
         self.dict_features['right'] = self.right_features
         self.dict_features['nose'] = 0
 
-        # For tracking counters and sharing states in and out of callbacks.
+        # Para rastrear contadores y compartir estados dentro y fuera de las funciones de callback.
         self.state_tracker = {
             'state_seq': [],
 
@@ -70,7 +70,7 @@ class ProcessFrame:
             'INACTIVE_TIME': 0.0,
             'INACTIVE_TIME_FRONT': 0.0,
 
-            # 0 --> Bend Backwards, 1 --> Bend Forward, 2 --> Keep shin straight, 3 --> Deep squat
+            # 0 --> INCLINATE HACIA ATRÁS, 1 --> INCLINATE HACIA ADELANT, 2 --> RODILLA SOBREPASANDO EL DEDO DEL PIE, 3 --> SENTADILLA DEMASIADO PROFUNDA
             'DISPLAY_TEXT': np.full((4,), False),
             'COUNT_FRAMES': np.zeros((4,), dtype=np.int64),
 
@@ -95,7 +95,7 @@ class ProcessFrame:
         }
 
     def _get_state(self, knee_angle):
-
+        # Determina el estado actual basado en el ángulo de la rodilla.
         knee = None
 
         if self.thresholds['HIP_KNEE_VERT']['NORMAL'][0] <= knee_angle <= self.thresholds['HIP_KNEE_VERT']['NORMAL'][1]:
@@ -108,7 +108,7 @@ class ProcessFrame:
         return f's{knee}' if knee else None
 
     def _update_state_sequence(self, state):
-
+        # Actualiza la secuencia de estados para rastrear la progresión de los movimientos de sentadilla.
         if state == 's2':
             if (('s3' not in self.state_tracker['state_seq']) and (self.state_tracker['state_seq'].count('s2')) == 0) or \
                     (('s3' in self.state_tracker['state_seq']) and (self.state_tracker['state_seq'].count('s2') == 1)):
@@ -120,7 +120,7 @@ class ProcessFrame:
                 self.state_tracker['state_seq'].append(state)
 
     def _show_feedback(self, frame, c_frame, dict_maps, lower_hips_disp):
-
+        # Muestra comentarios en el marco basado en la postura detectada.
         if lower_hips_disp:
             draw_text(
                 frame,
@@ -146,24 +146,42 @@ class ProcessFrame:
         return frame
 
     def process(self, frame: np.array, pose):
+        """
+        Procesa un fotograma de video para detectar y analizar los puntos de referencia de la postura,
+        proporciona retroalimentación visual y lleva un seguimiento del conteo de sentadillas.
+        :param frame: El frame de video a ser procesado
+        :param pose: El modelo de ML - Mediapipe pose
+        :return:
+
+        Description: Esta función procesa un fotograma de video para detectar puntos de referencia de la postura
+        utilizando el modelo de estimación de postura proporcionado. Calcula varios ángulos y coordenadas para los
+        puntos de referencia del cuerpo, proporciona retroalimentación visual en el fotograma, lleva un seguimiento
+        de las sentadillas correctas e incorrectas y actualiza el rastreador de estado en consecuencia. También
+        verifica la alineación de la cámara y la inactividad para reiniciar los contadores de sentadillas si es
+        necesario.
+        """
+
+
         play_sound = None
 
         frame_height, frame_width, _ = frame.shape
 
-        # Process the image.
+        # Procesa la imagen.
         keypoints = pose.process(frame)
 
         if keypoints.pose_landmarks:
             ps_lm = keypoints.pose_landmarks
-
+            # Obtiene las coordenadas de la nariz y varios puntos de las articulaciones.
             nose_coord = get_landmark_features(ps_lm.landmark, self.dict_features, 'nose', frame_width, frame_height)
             left_shldr_coord, left_elbow_coord, left_wrist_coord, left_hip_coord, left_knee_coord, left_ankle_coord, left_foot_coord = \
                 get_landmark_features(ps_lm.landmark, self.dict_features, 'left', frame_width, frame_height)
             right_shldr_coord, right_elbow_coord, right_wrist_coord, right_hip_coord, right_knee_coord, right_ankle_coord, right_foot_coord = \
                 get_landmark_features(ps_lm.landmark, self.dict_features, 'right', frame_width, frame_height)
 
+            # Calcula el ángulo de desviación entre los hombros y la nariz.
             offset_angle = find_angle(left_shldr_coord, right_shldr_coord, nose_coord)
 
+            # Verifica la alineación de la cámara.
             if offset_angle > self.thresholds['OFFSET_THRESH']:
 
                 display_inactivity = False
@@ -172,6 +190,7 @@ class ProcessFrame:
                 self.state_tracker['INACTIVE_TIME_FRONT'] += end_time - self.state_tracker['start_inactive_time_front']
                 self.state_tracker['start_inactive_time_front'] = end_time
 
+                # Reinicia el conteo de sentadillas si la cámara está desalineada por demasiado tiempo.
                 if self.state_tracker['INACTIVE_TIME_FRONT'] >= self.thresholds['INACTIVE_THRESH']:
                     self.state_tracker['SQUAT_COUNT'] = 0
                     self.state_tracker['IMPROPER_SQUAT'] = 0
@@ -233,13 +252,13 @@ class ProcessFrame:
                     text_color_bg=(255, 153, 0),
                 )
 
-                # Reset inactive times for side view.
+                # Reinicia los tiempos de inactividad para la vista lateral.
                 self.state_tracker['start_inactive_time'] = time.perf_counter()
                 self.state_tracker['INACTIVE_TIME'] = 0.0
                 self.state_tracker['prev_state'] = None
                 self.state_tracker['curr_state'] = None
 
-            # Camera is aligned properly.
+            # La cámara está alineada correctamente.
             else:
 
                 self.state_tracker['INACTIVE_TIME_FRONT'] = 0.0
@@ -279,7 +298,7 @@ class ProcessFrame:
 
                     multiplier = 1
 
-                # ------------------- Vertical Angle calculation --------------
+                # ------------------- Calculo angulo vertical  --------------
 
                 hip_vertical_angle = find_angle(shldr_coord, np.array([hip_coord[0], 0]), hip_coord)
                 cv2.ellipse(frame, hip_coord, (30, 30),
@@ -527,7 +546,7 @@ class ProcessFrame:
                 self.state_tracker['start_inactive_time'] = time.perf_counter()
                 self.state_tracker['INACTIVE_TIME'] = 0.0
 
-            # Reset all other state variables
+            # Reinicia todas las demás variables de estado
 
             self.state_tracker['prev_state'] = None
             self.state_tracker['curr_state'] = None
