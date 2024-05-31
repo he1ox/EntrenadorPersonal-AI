@@ -1,4 +1,6 @@
 import os
+import time
+
 import gradio as gr
 import cv2
 import subprocess
@@ -21,7 +23,11 @@ POSE = get_mediapipe_pose()
 title = "IronAssist - Entrenador Personal"
 
 
-def process_video(video_path, mode="Principiante"):
+def process_video(video_path, mode="Principiante", progress=gr.Progress()):
+
+    progress(0, desc="Inicializando modelo...")
+    time.sleep(3)
+
     output_video_file = f"output_recorded.mp4"
 
     if mode == 'Principiante':
@@ -29,6 +35,11 @@ def process_video(video_path, mode="Principiante"):
 
     elif mode == 'Pro':
         thresholds = get_thresholds_pro()
+
+    progress(0.10, desc="Obteniendo parametros de dificultad...")
+    time.sleep(2)
+
+
 
     upload_process_frame = ProcessFrame(thresholds=thresholds)
 
@@ -41,6 +52,12 @@ def process_video(video_path, mode="Principiante"):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_output = cv2.VideoWriter(output_video_file, fourcc, fps, frame_size)
 
+
+    progress(0.90, desc="Comenzando procesamiento de datos...")
+    time.sleep(2)
+
+    progress(1, desc="Todo listo!...")
+    time.sleep(1)
     count = 0
     while vf.isOpened():
         ret, frame = vf.read()
@@ -67,53 +84,34 @@ def process_video(video_path, mode="Principiante"):
     yield None, output_video_file
 
 
-input_video = gr.Video(label="Carga un video")
-webcam_video = gr.Video(sources=["webcam"], label="Selecciona una webcam, y grabate!")
+input_video = gr.Video(label="Selecciona un archivo, o grabate", format="mp4", show_download_button=True,
+                       mirror_webcam=False)
 
 output_frames_up = gr.Image(label="Frames Procesados")
 output_video_file_up = gr.Video(label="Resultado: Análisis", )
 
-output_frames_cam = gr.Image(label="Frames Procesados")
-output_video_file_cam = gr.Video(label="Resultado: Análisis")
-
-upload_interface = gr.Interface(
+demo = gr.Interface(
     fn=process_video,
     inputs=[input_video, gr.Radio(choices=["Principiante", "Pro"], label="Dificultad", info="Selecciona un modo")],
     outputs=[output_frames_up, output_video_file_up],
+    submit_btn="Comenzar Analisis",
+    stop_btn="Parar",
+    clear_btn="Limpiar",
     description=
     f"""
                         <div style="text-align: center;">
                             <h3>Potenciado con Inteligencia Artificial</h3>
-                            <p>Sube un video para analizar tu entrenamiento y recibir retroalimentación en tiempo real.</p>
+                            <p>Sube un video o grabate tu mismo para analizar tu entrenamiento y recibir retroalimentación en tiempo real.</p>
                             <div style="display: flex; justify-content: center; align-items: center;">
                                 <img src="file/iron-assist.png" alt="IronAssist Interface" style="max-width: 40%; height: auto;">
                             </div>
                         </div>
                         """,
     article=footer,
+    theme=gr.themes.Soft(),
     allow_flagging="never",
-    examples=[[sample_video], [sample_video_woman]]
+    examples=[[sample_video], [sample_video_woman]],
+    title="IronAssist - Entrenador Personal"
 )
 
-webcam_interface = gr.Interface(
-    fn=process_video,
-    inputs=[webcam_video, gr.Radio(choices=["Principiante", "Pro"], label="Dificultad", info="Selecciona un modo")],
-    outputs=[output_frames_cam, output_video_file_cam],
-    description=
-    f"""
-                        <div style="text-align: center;">
-                            <h3>Potenciado con Inteligencia Artificial</h3>
-                            <p>Utiliza tu camara y recibe retroalimentación.</p>
-                            <div style="display: flex; justify-content: center; align-items: center;">
-                                <img src="file/iron-assist.png" alt="IronAssist Interface" style="max-width: 40%; height: auto;">
-                            </div>
-                        </div>
-                        """,
-    article=footer,
-    allow_flagging="never"
-)
-
-app = gr.TabbedInterface([upload_interface, webcam_interface],
-                         tab_names=["⬆️ Procesar Video", "📷️ Webcam - Grabate!"], theme=gr.themes.Soft(), title="IronAssist - Entrenador Personal")
-
-app.queue().launch(allowed_paths=["."])
+demo.queue().launch(allowed_paths=["."], favicon_path="/icon.png", auth=["jorge","tester"])
