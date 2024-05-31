@@ -80,7 +80,6 @@ upload_interface = gr.Interface(
     fn=process_video,
     inputs=[input_video, gr.Radio(choices=["Principiante", "Pro"], label="Dificultad", info="Selecciona un modo")],
     outputs=[output_frames_up, output_video_file_up],
-    title=title,
     description=
     f"""
                         <div style="text-align: center;">
@@ -100,7 +99,6 @@ webcam_interface = gr.Interface(
     fn=process_video,
     inputs=[webcam_video, gr.Radio(choices=["Principiante", "Pro"], label="Dificultad", info="Selecciona un modo")],
     outputs=[output_frames_cam, output_video_file_cam],
-    title=title,
     description=
     f"""
                         <div style="text-align: center;">
@@ -116,6 +114,6 @@ webcam_interface = gr.Interface(
 )
 
 app = gr.TabbedInterface([upload_interface, webcam_interface],
-                         tab_names=["⬆️ Procesar Video", "📷️ Webcam - Grabate!"], theme=gr.themes.Soft())
+                         tab_names=["⬆️ Procesar Video", "📷️ Webcam - Grabate!"], theme=gr.themes.Soft(), title="IronAssist - Entrenador Personal")
 
 app.queue().launch(allowed_paths=["."])
