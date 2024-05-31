@@ -519,7 +519,7 @@ class ProcessFrame:
 
             draw_text(
                 frame,
-                'CORRECT: ' + str(self.state_tracker['SQUAT_COUNT']),
+                'REPS. CORRECTAS: ' + str(self.state_tracker['SQUAT_COUNT']),
                 pos=(int(frame_width * 0.70), 30),
                 text_color=(255, 255, 230),
                 font_scale=0.6,
@@ -531,7 +531,7 @@ class ProcessFrame:
 
             draw_text(
                 frame,
-                'INCORRECT: ' + str(self.state_tracker['IMPROPER_SQUAT']),
+                'REPS. INCORRECTAS: ' + str(self.state_tracker['IMPROPER_SQUAT']),
                 pos=(int(frame_width * 0.70), 100),
                 text_color=(255, 255, 230),
                 font_scale=0.6,

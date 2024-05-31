@@ -114,4 +114,4 @@ demo = gr.Interface(
     title="IronAssist - Entrenador Personal"
 )
 
-demo.queue().launch(allowed_paths=["."], favicon_path="/icon.png", auth=["jorge","tester"])
+demo.queue().launch(allowed_paths=["."], auth=["jorge","tester"])
