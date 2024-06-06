@@ -10,4 +10,4 @@ RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 EXPOSE 7860
 ENV GRADIO_SERVER_NAME="0.0.0.0"
 
-CMD ["python","app.py"]
+CMD ["sh", "-c", "playwright install && python app.py"]
