@@ -38,8 +38,7 @@ def process_video(video_path, mode="Principiante", progress=gr.Progress()):
     elif mode == 'Pro':
         thresholds = get_thresholds_pro()
 
-    progress(0.10,
-             desc="Obteniendo parametros de dificultad....")
+    progress(0.10, desc="Obteniendo parametros de dificultad....")
     time.sleep(2)
 
     upload_process_frame = ProcessFrame(thresholds=thresholds)
