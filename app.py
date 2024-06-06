@@ -53,7 +53,7 @@ def process_video(video_path, mode="Principiante", progress=gr.Progress()):
     video_output = cv2.VideoWriter(output_video_file, fourcc, fps, frame_size)
 
 
-    progress(0.90, desc="Comenzando procesamiento de datos...")
+    progress(0.90, desc="Comenzando procesamiento de datos..")
     time.sleep(2)
 
     progress(1, desc="Todo listo!...")
