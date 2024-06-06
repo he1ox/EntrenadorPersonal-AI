@@ -9,8 +9,10 @@ from utils import get_mediapipe_pose
 from process_frame import ProcessFrame
 from thresholds import get_thresholds_beginner, get_thresholds_pro
 
-sample_video = os.path.join(os.path.dirname(__file__), "samples/sample-squats.mp4")
-sample_video_woman = os.path.join(os.path.dirname(__file__), "samples/sample_squats_2.mp4")
+sample_video = os.path.join(os.path.dirname(__file__),
+                            "samples/sample-squats.mp4")
+sample_video_woman = os.path.join(os.path.dirname(__file__),
+                                  "samples/sample_squats_2.mp4")
 banner = os.path.join(os.path.dirname(__file__), "iron-assist.png")
 
 footer = """
@@ -39,8 +41,6 @@ def process_video(video_path, mode="Principiante", progress=gr.Progress()):
     progress(0.10, desc="Obteniendo parametros de dificultad...")
     time.sleep(2)
 
-
-
     upload_process_frame = ProcessFrame(thresholds=thresholds)
 
     vf = cv2.VideoCapture(video_path)
@@ -51,7 +51,6 @@ def process_video(video_path, mode="Principiante", progress=gr.Progress()):
     frame_size = (width, height)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_output = cv2.VideoWriter(output_video_file, fourcc, fps, frame_size)
-
 
     progress(0.90, desc="Comenzando procesamiento de datos..")
     time.sleep(2)
@@ -84,21 +83,26 @@ def process_video(video_path, mode="Principiante", progress=gr.Progress()):
     yield None, output_video_file
 
 
-input_video = gr.Video(label="Selecciona un archivo, o grabate", format="mp4", show_download_button=True,
+input_video = gr.Video(label="Selecciona un archivo, o grabate",
+                       format="mp4",
+                       show_download_button=True,
                        mirror_webcam=False)
 
 output_frames_up = gr.Image(label="Frames Procesados")
 output_video_file_up = gr.Video(label="Resultado: Análisis", )
 
-demo = gr.Interface(
-    fn=process_video,
-    inputs=[input_video, gr.Radio(choices=["Principiante", "Pro"], label="Dificultad", info="Selecciona un modo")],
-    outputs=[output_frames_up, output_video_file_up],
-    submit_btn="Comenzar Analisis",
-    stop_btn="Parar",
-    clear_btn="Limpiar",
-    description=
-    f"""
+demo = gr.Interface(fn=process_video,
+                    inputs=[
+                        input_video,
+                        gr.Radio(choices=["Principiante", "Pro"],
+                                 label="Dificultad",
+                                 info="Selecciona un modo")
+                    ],
+                    outputs=[output_frames_up, output_video_file_up],
+                    submit_btn="Comenzar Analisis",
+                    stop_btn="Parar",
+                    clear_btn="Limpiar",
+                    description=f"""
                         <div style="text-align: center;">
                             <h3>Potenciado con Inteligencia Artificial</h3>
                             <p>Sube un video o grabate tu mismo para analizar tu entrenamiento y recibir retroalimentación en tiempo real.</p>
@@ -107,11 +111,10 @@ demo = gr.Interface(
                             </div>
                         </div>
                         """,
-    article=footer,
-    theme=gr.themes.Soft(),
-    allow_flagging="never",
-    examples=[[sample_video], [sample_video_woman]],
-    title="IronAssist - Entrenador Personal"
-)
+                    article=footer,
+                    theme=gr.themes.Soft(),
+                    allow_flagging="never",
+                    examples=[[sample_video], [sample_video_woman]],
+                    title="IronAssist - Entrenador Personal")
 
-demo.queue().launch(allowed_paths=["."], auth=["jorge","tester"])
+demo.queue().launch(allowed_paths=["."], auth=["jorge", "tester"])
